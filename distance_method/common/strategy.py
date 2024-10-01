@@ -12,12 +12,11 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from collections import defaultdict
 
-
 class Distance_method():
     
-
-    
     def __init__(self, stock1:str, stock2:str, start_date:str, end_date:str, window_size:int, n_times:int, figure_path:str=None) -> None:
+        
+        # init params
         self.stock1 = stock1
         self.stock2 = stock2
         self.start_date = start_date
@@ -27,7 +26,7 @@ class Distance_method():
         self.figure_path = figure_path
         self.folder_path = None
         
-        # 損益圖變數
+        # profit&loss params
         self.profit_loss_val = 0
         self.oper_value = 10000
         self.daily_profits = []
@@ -35,7 +34,8 @@ class Distance_method():
         self.entry_point = []
         self.exit_point = []
         
-        
+        # strategy params
+        self.trading_signals = defaultdict(list)
         self.closing_prices = {}
         self.spread = None  
         self.rolling_mean = None
@@ -44,7 +44,6 @@ class Distance_method():
         self.lower_line = None
         self.upper_status = 0
         self.lower_status = 0
-        self.trading_signals = defaultdict(list)
           
     def _strategy(self):        
         
@@ -91,7 +90,6 @@ class Distance_method():
             self.folder_path = f"{self.figure_path}/{current_time}_{self.stock1}_{self.stock2}_{self.start_date}_{self.end_date}"
             if not os.path.exists(self.folder_path):
                 os.makedirs(self.folder_path)
-        
         data1 = yf.download(self.stock1, start=self.start_date, end=self.end_date)
         data2 = yf.download(self.stock2, start=self.start_date, end=self.end_date)
         self.closing_prices[self.stock1] = data1['Adj Close']
@@ -251,6 +249,7 @@ class Distance_method():
 
             # 檢查是否有開倉信號
             matching_entry = list(filter(lambda x: x[0] == date and x[3] == 'Open', all_signals))
+            
             if matching_entry:
                 qty1 = (self.oper_value / 2) / price1
                 qty2 = (self.oper_value / 2) / price2
@@ -376,7 +375,7 @@ if __name__ == "__main__":
         start_date = str(args.start_date), 
         end_date = str(args.end_date), 
         window_size = int(args.window_size), 
-        n_times = int(2),
+        n_times = int(args.n_times),
         figure_path = str(args.figure_path)
         )
     

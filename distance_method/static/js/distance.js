@@ -4,7 +4,6 @@ $.ajaxSetup({
   },
 });
   
-  
   function render_signals_graph(
     container,
     ticker1,
@@ -403,7 +402,6 @@ $.ajaxSetup({
             Highcharts.stockChart(container, obj);
   };
 
-  
   $(document).ready(function () {
   
     $("#distance_submit").click(function () {
@@ -466,7 +464,6 @@ $.ajaxSetup({
           $(`#distance_add_track`).show();
           $(".distance_result").css("display", "block");
    
-  
           render_signals_graph(
             "signals_plot",
             response.stock1,
@@ -494,7 +491,6 @@ $.ajaxSetup({
             response.pl_exit_point,
           );
 
-  
           $("#signals_table").DataTable({
             autoWidth: false,
             bDestroy: true,
