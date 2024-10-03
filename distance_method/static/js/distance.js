@@ -532,6 +532,50 @@ $.ajaxSetup({
               }
             },
           });
+
+          $("#exe_signals_table").DataTable({
+            autoWidth: false,
+            bDestroy: true,
+            searching: false,
+            lengthMenu: [
+              [5, 10, 20, -1],
+              [5, 10, 20, "All"],
+            ],
+            data: response.exe_table_signals,
+            columns: [
+              { data: "date", title: "Date" },
+              { data: "type", title: "Type" },
+              { data: "stock1_action", title: `Action of ${response.stock1}` },
+              { data: "stock1_price", title: `Price of ${response.stock1}` },
+              { data: "stock2_action", title: `Action of ${response.stock2}` },
+              { data: "stock2_price", title: `Price of ${response.stock2}` },
+              { data: "percentage", title: `Percentage of Profit|Loss (%)` },
+            ],
+            columnDefs: [
+              {
+                targets: [2, 3],
+                createdCell: function (td, cellData, rowData, row, col) {
+                  $(td).css("background-color", "white");
+                },
+              },
+              {
+                targets: [4, 5],
+                createdCell: function (td, cellData, rowData, row, col) {
+                  $(td).css("background-color", "whitesmoke");
+                },
+              },
+            ],
+            fnRowCallback: function (nRow, aData) {
+              if (aData["type"] == "Open") {
+                $(nRow).find("td:eq(0)").css("background-color", "paleturquoise");
+                $(nRow).find("td:eq(1)").css("background-color", "paleturquoise");
+              } else {
+                $(nRow).find("td:eq(0)").css("background-color", "MistyRose");
+                $(nRow).find("td:eq(1)").css("background-color", "MistyRose");
+              }
+            },
+          });
+
         
         },
       });

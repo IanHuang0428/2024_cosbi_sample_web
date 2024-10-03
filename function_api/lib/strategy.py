@@ -69,20 +69,20 @@ class Distance_method():
             target_spread = self.spread[ind]  
             
             if target_spread >= self.upper_line[ind] and (self.upper_status == 0):
-                self.trading_signals[f'upper'].append([date, target_spread, 'SELL', "Open"])
+                self.trading_signals[f'upper'].append([date.strftime('%Y-%m-%d'), target_spread, 'SELL', "Open"])
                 self.upper_status = 1
 
             if target_spread <= self.rolling_mean[ind] and (self.upper_status == 1):
-                self.trading_signals[f'upper'].append([date, target_spread, 'BUY', "Close"])
+                self.trading_signals[f'upper'].append([date.strftime('%Y-%m-%d'), target_spread, 'BUY', "Close"])
                 self.upper_status = 0
 
 
             if target_spread <= self.lower_line[ind] and (self.lower_status == 0):
-                self.trading_signals[f'lower'].append([date, target_spread, 'BUY', "Open"])
+                self.trading_signals[f'lower'].append([date.strftime('%Y-%m-%d'), target_spread, 'BUY', "Open"])
                 self.lower_status = 1
 
             if target_spread >= self.rolling_mean[ind] and (self.lower_status == 1):
-                self.trading_signals[f'lower'].append([date, target_spread, 'SELL', "Close"])
+                self.trading_signals[f'lower'].append([date.strftime('%Y-%m-%d'), target_spread, 'SELL', "Close"])
                 self.lower_status = 0
         
     def _load_data(self):
@@ -240,7 +240,7 @@ class Distance_method():
         for ele in self.exe_trading_signals:
             date = ele[0]
             next_date = self.closing_prices[self.stock1].index[self.closing_prices[self.stock1].index.get_loc(date) + 1]  
-            ele[0] = next_date            
+            ele[0] = next_date.strftime('%Y-%m-%d')           
         
         # 初始變量設定
         all_qty1 = 0
@@ -257,7 +257,7 @@ class Distance_method():
             daily_profit = 0
 
             # 檢查是否有開倉信號
-            matching_entry = list(filter(lambda x: x[0] == date and x[3] == 'Open', self.exe_trading_signals))
+            matching_entry = list(filter(lambda x: datetime.strptime(x[0], '%Y-%m-%d') == date and x[3] == 'Open', self.exe_trading_signals))
             if matching_entry:
                 qty1 = (self.oper_value / 2) / price1
                 qty2 = (self.oper_value / 2) / price2
@@ -282,10 +282,10 @@ class Distance_method():
                 
                 # 計算當前總收益百分比
                 entry_percentage = ((self.profit_loss_val+daily_profit) / self.oper_value) * 100
-                self.entry_point.append((date, entry_percentage))
+                self.entry_point.append((date.strftime('%Y-%m-%d'), entry_percentage))
                     
             # 檢查是否有平倉信號
-            matching_exits = list(filter(lambda x: x[0] == date and x[3] == 'Close', self.exe_trading_signals))
+            matching_exits = list(filter(lambda x: datetime.strptime(x[0], '%Y-%m-%d')  == date and x[3] == 'Close', self.exe_trading_signals))
             if matching_exits:
                 if matching_exits[0][2] == "BUY":
                     daily_profit = -(all_qty1 * price1) + (all_qty2 * price2)
@@ -296,7 +296,7 @@ class Distance_method():
                 
                 # 計算當前總收益百分比
                 exit_percentage = (self.profit_loss_val / self.oper_value) * 100
-                self.exit_point.append((date, exit_percentage))
+                self.exit_point.append((date.strftime('%Y-%m-%d'), exit_percentage))
                 
                 # initialize
                 all_qty1 = 0
@@ -313,11 +313,11 @@ class Distance_method():
                 
                 # 計算當前總收益百分比
                 daily_percentage = ((self.profit_loss_val + daily_profit) / self.oper_value) * 100
-                self.daily_profits.append((date, daily_percentage))
+                self.daily_profits.append((date.strftime('%Y-%m-%d')   , daily_percentage))
 
             # 記錄總值百分比
             total_percentage = (self.profit_loss_val / self.oper_value) * 100
-            self.total_values.append((date, total_percentage))
+            self.total_values.append((date.strftime('%Y-%m-%d')   , total_percentage))
             
         # Convert the list to a JSON serializable format
         if self.folder_path:
@@ -388,11 +388,3 @@ if __name__ == "__main__":
         )
     
     # object.run()
-    
-    
-    
-
-
-
-
-    
