@@ -12,7 +12,6 @@ from common.strategy import Distance_method
 from common.postprocessing import handle_signals_data, handle_bollinger_band_data, handle_profit_loss_data, handle_exe_signals_data
 from common.postprocessing import handle_api_signals_data, handle_api_bollinger_band_data, handle_api_profit_loss_data, handle_api_exe_signals_data
 
-
 def web(request):
     if not request.user.is_authenticated:
         messages.success(request, 'Sorry ! Please Log In.')
@@ -48,7 +47,6 @@ def ScreenerDistance(request):
         'n_times' : int(std)
     }
     res = fc.pairtrading_backtesting(params=params, method="distance")
-    
     # Handle signals data
     plot_signals, table_signals = handle_api_signals_data(object = res, 
                                         stock1 = stock1, 

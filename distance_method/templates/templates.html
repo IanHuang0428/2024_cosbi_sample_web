@@ -1,6 +1,11 @@
 <html> 
     <header>
         {% include "includes/header.html" %}
+        {% if request.user.is_authenticated %}
+            <div>
+                <p style="text-align:right;">Hello, {{request.user}} !&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            </div>
+        {% endif %}
     </header>
 
     

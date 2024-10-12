@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from tool import views #匯入你的 web_tool/view.py
+from tool import views 
+from monitor import views 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('correlation/', include('tool.urls')),
+    path('monitor/', include('monitor.urls')),
 ]

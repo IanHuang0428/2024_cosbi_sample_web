@@ -7,7 +7,6 @@ from datetime import datetime
 from common import highchart_format 
 from collections import defaultdict
 
-
 def handle_exe_signals_data(object, stock1, stock2, data1, data2):
     # stock price data
     all_price = pd.DataFrame({
@@ -19,7 +18,6 @@ def handle_exe_signals_data(object, stock1, stock2, data1, data2):
     exit_date = [ele[0] for ele in copy.deepcopy(object.exit_point)]    
     tmp_data = [item[1] for item in copy.deepcopy(object.total_values) if item[0] in exit_date]
     percentage = []
-    print(tmp_data)
     for i in range(0, len(tmp_data)):
         if i != 0:
             subtraction = tmp_data[i] - tmp_data[(i-1)]
@@ -129,7 +127,6 @@ def handle_api_exe_signals_data(object, stock1, stock2, data1, data2):
     exit_date = [ele[0] for ele in copy.deepcopy(object["exit_point"])]    
     tmp_data = [item[1] for item in copy.deepcopy(object["total_values"]) if item[0] in exit_date]
     percentage = []
-    print(tmp_data)
     for i in range(0, len(tmp_data)):
         if i != 0:
             subtraction = tmp_data[i] - tmp_data[(i-1)]
@@ -164,9 +161,8 @@ def handle_api_signals_data(object, stock1, stock2, data1, data2):
         stock1: data1['Close'],
         stock2: data2['Close']
     })
-    
+
     sorted_list = sorted((object["trading_signals"]['upper'] + object["trading_signals"]['lower']), key=lambda x: x[0])
-    
     plot_signals = defaultdict(list) 
     for row in sorted_list:
         date1 = highchart_format.convert_timestamp_to_highchart(row[0])
@@ -196,7 +192,6 @@ def handle_api_signals_data(object, stock1, stock2, data1, data2):
     return plot_signals, table_signals
 
 def handle_api_bollinger_band_data(object):
-    sorted_list = sorted((object["trading_signals"]['upper'] + object["trading_signals"]['lower']), key=lambda x: x[0])
     spread = pd.read_json(object["spread"], orient='records')
     spread = spread.dropna()
     spread = spread.values.tolist()
@@ -217,6 +212,7 @@ def handle_api_bollinger_band_data(object):
     lower_line = lower_line.values.tolist()
     lower_line = [[int(date.timestamp() * 1000), val] for date, val in lower_line]
     
+    sorted_list = sorted((object["trading_signals"]['upper'] + object["trading_signals"]['lower']), key=lambda x: x[0])
     bands_signals_sell = [[int(datetime.strptime(ele[0], '%Y-%m-%d').timestamp() * 1000), ele[1]] for ele in sorted_list if ele[2]=='SELL']
     bands_signals_buy = [[int(datetime.strptime(ele[0], '%Y-%m-%d').timestamp() * 1000) , ele[1]] for ele in sorted_list if ele[2]=='BUY']
     

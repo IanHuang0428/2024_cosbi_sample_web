@@ -403,7 +403,39 @@ $.ajaxSetup({
   };
 
   $(document).ready(function () {
+
+    $('#distance_add_track').click(function(){
+
+      // 拿取使用者選取的parames
+      var stock1 = $(`#stock1-distance`).val();
+      var stock2 = $("#stock2-distance").val();
+      var start_date = $("#start_date-distance").val();
+      var end_date = $("#end_date-distance").val();
+      var window_sizes = $(`#window_size-distance`).val();
+      var std = $("#std-distance").val();
   
+      var track_params = new FormData();
+      track_params.append("stock1", stock1);
+      track_params.append("stock2", stock2);
+      track_params.append("method", "distance");
+      track_params.append("start_date", start_date);
+      track_params.append("end_date", end_date);
+      track_params.append("window_sizes", window_sizes);
+      track_params.append("std", std);
+  
+      $.ajax({
+          url: "/monitor/add_track/",
+          type: "post",
+          data : track_params,
+          dataType : 'json',
+          processData : false,
+          contentType : false,
+          success: function (res) {
+              alert("Add track successful!!!!!!!!!!!")
+          }
+      });
+    });
+
     $("#distance_submit").click(function () {
   
       // 拿取使用者選取的parames
