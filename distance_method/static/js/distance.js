@@ -22,22 +22,24 @@ $.ajaxSetup({
     ];
   
     let plotLinesArray = [];
-    for (let i = 0; i < signals["Entry_Exit"].length; i++) {
-      plotLinesArray.push({
-        color: signals["Entry_Exit"][i].color, // 垂直線的顏色
-        width: 1, // 垂直線的寬度
-        value: signals["Entry_Exit"][i].date, // 垂直線的位置（日期）
-        dashStyle: "Dash", // 線條樣式
-        label: {
-          text: signals["Entry_Exit"][i].label, // 標籤文字
-          align: "center", // 標籤對齊方式
-          y: -5, // 標籤位置（向上移動）
-          rotation: 0,
-          style: {
-            fontSize: "10px",
+    if (signals["Entry_Exit"] && signals["Entry_Exit"].length > 0) {
+      for (let i = 0; i < signals["Entry_Exit"].length; i++) {
+        plotLinesArray.push({
+          color: signals["Entry_Exit"][i].color, // 垂直線的顏色
+          width: 1, // 垂直線的寬度
+          value: signals["Entry_Exit"][i].date, // 垂直線的位置（日期）
+          dashStyle: "Dash", // 線條樣式
+          label: {
+            text: signals["Entry_Exit"][i].label, // 標籤文字
+            align: "center", // 標籤對齊方式
+            y: -5, // 標籤位置（向上移動）
+            rotation: 0,
+            style: {
+              fontSize: "10px",
+            },
           },
-        },
-      });
+        });
+      }
     }
   
     var obj = {

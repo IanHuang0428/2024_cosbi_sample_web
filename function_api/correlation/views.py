@@ -5,15 +5,7 @@ from rest_framework.parsers import JSONParser
 from django.db import connection
 from rest_framework.response import Response
 import json
-import datetime
-import numpy as np
-import pandas as pd
 from pathlib import Path
-import multiprocessing
-from tqdm import tqdm
-from tqdm import trange
-from functools import partial
-from itertools import permutations
 
 from lib.strategy import Distance_method
 

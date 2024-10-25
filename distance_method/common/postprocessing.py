@@ -162,7 +162,9 @@ def handle_api_signals_data(object, stock1, stock2, data1, data2):
         stock2: data2['Close']
     })
 
-    sorted_list = sorted((object["trading_signals"]['upper'] + object["trading_signals"]['lower']), key=lambda x: x[0])
+    upper_signals = object["trading_signals"].get('upper', [])
+    lower_signals = object["trading_signals"].get('lower', [])
+    sorted_list = sorted((upper_signals + lower_signals), key=lambda x: x[0])
     plot_signals = defaultdict(list) 
     for row in sorted_list:
         date1 = highchart_format.convert_timestamp_to_highchart(row[0])
@@ -212,7 +214,10 @@ def handle_api_bollinger_band_data(object):
     lower_line = lower_line.values.tolist()
     lower_line = [[int(date.timestamp() * 1000), val] for date, val in lower_line]
     
-    sorted_list = sorted((object["trading_signals"]['upper'] + object["trading_signals"]['lower']), key=lambda x: x[0])
+    
+    upper_signals = object["trading_signals"].get('upper', [])
+    lower_signals = object["trading_signals"].get('lower', [])
+    sorted_list = sorted((upper_signals + lower_signals), key=lambda x: x[0])
     bands_signals_sell = [[int(datetime.strptime(ele[0], '%Y-%m-%d').timestamp() * 1000), ele[1]] for ele in sorted_list if ele[2]=='SELL']
     bands_signals_buy = [[int(datetime.strptime(ele[0], '%Y-%m-%d').timestamp() * 1000) , ele[1]] for ele in sorted_list if ele[2]=='BUY']
     

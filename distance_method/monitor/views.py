@@ -3,13 +3,18 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from common.user_setting_operation import  UserTrackingHandler
+from common.func_client import FuncClient
 import json
+import os
+from pathlib import Path
 import datetime
 import yfinance as yf
 from common import highchart_format 
 from common.postprocessing import handle_api_signals_data, handle_api_bollinger_band_data, handle_api_profit_loss_data, handle_api_exe_signals_data
 
 uth = UserTrackingHandler()
+fc = FuncClient()
+
 
 def web(request):
     # render search page
@@ -38,7 +43,6 @@ def get_track_list(request):
         
     if track_data is None:
         """error handling"""
-    
     return JsonResponse({"track_data": track_data}) 
 
 @csrf_exempt
@@ -88,22 +92,45 @@ def remove_track(request):
         
     return JsonResponse({'msg': 'Successful'})
 
-
 @csrf_exempt
 def run_tracker(request):
     start_date = request.POST.get('start_date')
     end_date = datetime.date.today().strftime('%Y-%m-%d')
     stock1 = request.POST.get('stock1')
     stock2 = request.POST.get('stock2')
+    method = request.POST.get('method')
     window_size = request.POST.get('window_size')
     std = request.POST.get('n_times')
     user = str(request.user)
     
-    tracker_folder_path = "/home/thomas/Desktop/distance_method/distance_method/common/tracker_results"    
+      
+    env = os.environ['PROJECT_ENV']
+    if env == "prod":
+        tracker_folder_path = "/app/tracker_results"
+    elif env == "dev":
+        tracker_folder_path = Path.cwd().parent / "common" / "tracker_results"
+    else:
+        raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
+    
     file_path = f"{tracker_folder_path}/{user}/{stock1}_{stock2}_{start_date}_{window_size}_{std}.json"
-
-    with open(file_path, 'r') as file:
-        data = json.load(file)  
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file) 
+    else:
+        data = fc.pairtrading_backtesting(
+            params = {
+                "stock1" : stock1,
+                "stock2" : stock2,
+                "start_date":start_date, 
+                "end_date" : end_date,
+                "window_size":window_size,
+                "n_times":std
+                },
+            method = method
+            )
+        # 將 JSON 資料保存到文件
+        with open(f'{file_path}', 'w') as json_file:
+            json.dump(data, json_file, indent=4)       
                 
     # yahoo database
     data1_response = yf.download(stock1, start=start_date, end=end_date)
@@ -112,7 +139,6 @@ def run_tracker(request):
     data2_response = yf.download(stock2, start=start_date, end=end_date)
     if data2_response is not None:
         data2_his = highchart_format.yahoo_convert_quote_series(data2_response)  
-        
     # Handle signals data
     plot_signals, table_signals = handle_api_signals_data(object = data, 
                                         stock1 = stock1, 

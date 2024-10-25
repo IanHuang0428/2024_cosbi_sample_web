@@ -5,7 +5,14 @@ import requests
 
 class FuncClient(object):
     _instance = None
-    ROOT = 'http://140.116.214.156:1986/usFunc/'
+    env = os.environ.get('PROJECT_ENV', 'dev')
+    if env == "prod":
+        ROOT = os.environ['FUNC_API_ROOT']
+    elif env == "dev":
+        ROOT = 'http://140.116.214.156:1986/usFunc/'
+    else:
+        raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
+        
     DISTANCEMETHOD_URL= ROOT + "distance_method/" 
 
     def __new__(cls, *args, **kwargs):

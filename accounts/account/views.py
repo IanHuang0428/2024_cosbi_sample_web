@@ -7,6 +7,9 @@ from .forms import RegisterForm, LoginForm
 from django.contrib.auth import authenticate, login, logout
 import os
 
+
+env = os.environ.get('PROJECT_ENV', 'dev')
+
 def sign_up(request):
     form = RegisterForm()
     if request.method == "POST":
@@ -25,7 +28,13 @@ def sign_up(request):
 def log_out(request):
     logout(request)
     messages.success(request, 'You are logged out.')
-    return redirect('http://140.116.214.156:1984/account/login')
+    
+    if env == "prod":
+        return redirect(os.environ['AUTH_PATH'] + "login")
+    elif env == "dev":
+        return redirect('http://140.116.214.156:1984/account/login')
+    else:
+        raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
 
 
 @csrf_exempt
@@ -40,8 +49,14 @@ def sign_in(request):
             # django login
             login(request, user)
             messages.success(request, 'You are now logged in.')
-
-            return redirect("http://140.116.214.156:1985/correlation")
+            
+            if env == "prod":
+                return redirect(os.environ['WEB_PATH'])
+            elif env == "dev":
+                return redirect('http://140.116.214.156:1985/correlation')
+            else:
+                raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
+            
         else:
             messages.warning(request, 'Invalid login credentials')
             return redirect('/account/login' )
@@ -50,3 +65,5 @@ def sign_in(request):
         'form': form
     }
     return render(request, 'accounts/login.html', context)
+
+

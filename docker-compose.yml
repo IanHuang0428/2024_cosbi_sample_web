@@ -1,0 +1,68 @@
+version: '3'
+services:
+  Auth:
+    build: ./accounts
+    image: distance_account
+    container_name: Auth
+    restart: always
+    ports:
+      - 1984:1984
+    environment:
+      USER_DB_HOST: 140.116.214.134
+      USER_DB_NAME: distance_method
+      USER_DB_USER: thomas
+      USER_DB_PASSWORD: AUTh6496
+      USER_DB_PORT: 5432
+      AUTH_PATH: http://140.116.214.156:1984/account/
+      WEB_PATH: http://140.116.214.156:1985/correlation/
+      PYTHONUNBUFFERED: 1
+
+  FuncAPI:
+    build: ./function_api
+    image: distance_func_api
+    container_name: FuncAPI
+    restart: always
+    ports: 
+      - 1986:1986
+    environment:
+      DATA_API_ROOT: https://cosbi5.ee.ncku.edu.tw/usData/
+      DATA_API_USER: searchfunc
+      DATA_API_PASSWORD: scbdfunc*
+      PYTHONUNBUFFERED: 1
+
+  Web:
+    build: ./distance_method
+
+    # 來自Docker Hub的映像檔
+    image: distance_web
+    container_name: Web
+    restart: always
+
+    # container port和主機port的配對
+    ports:
+      - 1985:1985
+
+    # 將主機的資料夾mount到container中
+    # 本地文件夾是 /home/thomas/Desktop/distance_method/distance_method/common/tracker_results, 希望將它掛載到容器內的 /app/tracker_results
+    volumes:
+      - /home/thomas/Desktop/distance_method/distance_method/common/tracker_results:/app/tracker_results
+        
+    # 環境參數
+    environment:
+      PROJECT_ENV : prod
+      DATA_API_ROOT: https://cosbi5.ee.ncku.edu.tw/usData/
+      DATA_API_USER: searchfunc
+      DATA_API_PASSWORD: scbdfunc*
+
+      FUNC_API_ROOT: http://140.116.214.156:1986/usFunc/
+
+      USER_DB_HOST: 140.116.214.134
+      USER_DB_NAME: distance_method
+      USER_DB_USER: thomas
+      USER_DB_PASSWORD: AUTh6496
+      USER_DB_PORT: 5432
+
+      AUTH_PATH: http://140.116.214.156:1984/account/
+      PYTHONUNBUFFERED: 1
+
+

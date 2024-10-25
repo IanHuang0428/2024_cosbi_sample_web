@@ -5,16 +5,17 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import datetime
-import pathlib
 import json
+from pathlib import Path
+
 
 class MailHandler:
     _host_email_address: str
     _host_passwd: str
     _subject: str
     
-    def __init__(self):
-        gmail_acct = "/home/thomas/Desktop/distance_method/distance_method/config/gmail.json"
+    def __init__(self):       
+        gmail_acct = Path.cwd().parent / "config" / "gmail.json"
         with open (gmail_acct, 'r')as f:
             acct_info = json.load(f)
         self._host_email_address = acct_info['username']

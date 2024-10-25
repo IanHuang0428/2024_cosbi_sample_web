@@ -177,17 +177,16 @@ function run_monitor_analysis(track_row){
 }
 
 $(document).ready(function (){
-  
     $.ajax({
         url: "/monitor/get_track_list/",
         type: "post",
         dataType : 'json',
         processData : false,
         contentType : false,
-        success: function (res) {
-            console.log(res)
+        success: function (response) {
+
             var table = $("#monitor").DataTable({
-                data: res.track_data,
+                data: response.track_data,
                 "createdRow": function (row, data, dataIndex) {
                     // 將每個儲存格的文字置中
                     $(row).find('td').css({
@@ -195,7 +194,6 @@ $(document).ready(function (){
                         'text-align': 'center'    // 置中
                     });
                 },
-
                 columns: [
                     { data: 'method' },
                     { data: 'stock1' },
@@ -220,8 +218,7 @@ $(document).ready(function (){
                 ],
                 order: [[1, 'asc']],  // 依 stock2 排序
             });
-            
-            
+                    
             $('#monitor tbody').on('click', 'td.dt-remove-tracking', function () {
                 var row = table.row($(this).parents('tr'));
                 var data = row.data();

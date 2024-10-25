@@ -5,15 +5,12 @@ import datetime
 from pathlib import Path
 import pandas as pd
 from collections import defaultdict
-
 from common.func_client import FuncClient
 from common.user_setting_operation import  UserTrackingHandler
 from common.mail import MailHandler
 
-
 class ReportHandler(object):
 
-    
     all_track_contents = defaultdict(list)
     func_api_respones = defaultdict(list)
     
@@ -21,16 +18,17 @@ class ReportHandler(object):
         self.mail = MailHandler()
         self.uth = UserTrackingHandler()
         self.fc = FuncClient()
-        self.email_folder_path = "/home/thomas/Desktop/distance_method/distance_method/common/email_reports"
-        self.tracker_folder_path = "/home/thomas/Desktop/distance_method/distance_method/common/tracker_results"
         
+        
+        self.email_folder_path = Path.cwd() / "common" / "email_reports"
+        self.tracker_folder_path = Path.cwd() / "common" / "tracker_results"        
         self.user_info = dict(self.uth.get_all_user_info())       
         
     def _create_local_email_file(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
         for ele in self.func_api_respones:
             for signal in self.func_api_respones[ele]:
-                if signal[0] == "2023-11-08": #today
+                if signal[0] == today:  
                     user = ele.split("_")[0] 
                     stock1 = ele.split("_")[1] 
                     stock2 = ele.split("_")[2] 
@@ -51,20 +49,22 @@ class ReportHandler(object):
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as w:
                         data.to_excel(w, sheet_name='Short', index=False)
                     print("Excel completed")
-
+                    
+                    # 發送信件
+                    email = self.user_info[user]
+                    res = self.mail.send(email, f"{self.email_folder_path}/data.xlsx")
+                    if res=={}:
+                        print("Send email successful!")
+                        self._remove_local_email_file(f"{self.email_folder_path}/data.xlsx")
+                    else:
+                        print("Send email failed!")
+                    
     def _remove_local_email_file(self, filename: str):
         print(f"successful remove {filename}!")
         os.remove(filename)
 
     def _init_local_tracker_contents(self):
         
-        # 創立使用者資料夾 & 將追蹤內容依照使用者分群
-        for ele in self.uth.get_all_track_params_combination():
-            user = ele[0]
-            if not os.path.exists(f"{self.tracker_folder_path}/{user}"):
-                os.makedirs(f"{self.tracker_folder_path}/{user}")
-            self.all_track_contents[user].append(ele)
-
         # 查看本地端已經存在的追蹤使用者 & 刪除不存在的使用者資料夾
         self.already_exist_users = [item for item in os.listdir(self.tracker_folder_path) if os.path.isdir(os.path.join(self.tracker_folder_path , item))]
         for already_exist_user in self.already_exist_users:
@@ -114,6 +114,13 @@ class ReportHandler(object):
 
     def main(self):
         
+        # 創立使用者資料夾 & 將追蹤內容依照使用者分群
+        for ele in self.uth.get_all_track_params_combination():
+            user = ele[0]
+            if not os.path.exists(f"{self.tracker_folder_path}/{user}"):
+                os.makedirs(f"{self.tracker_folder_path}/{user}")
+            self.all_track_contents[user].append(ele)
+        
         # 初始化本地資料夾
         self._init_local_tracker_contents()
         
@@ -124,17 +131,10 @@ class ReportHandler(object):
             for content in  individual_track_contents:
                 self._get_signals(content)
                 
-        # 發送信件
+        # 檢查是否要發送信件
         self._create_local_email_file()
-        res = self.mail.send(email, f"{self.email_folder_path}/data.xlsx")
-        if res=={}:
-            print("Send email successful!")
-            self._remove_local_email_file(f"{self.email_folder_path}/data.xlsx")
-        else:
-            print("Send email failed!")
 
-
-                
+ 
 if __name__ == "__main__":
     report = ReportHandler()
     report.main()

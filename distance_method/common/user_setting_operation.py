@@ -1,25 +1,39 @@
 import json
 import psycopg2
-import pathlib
 import os
+from pathlib import Path
+
 
 class ConnectUserDB(object):
     
     def __init__(self):
         
-        with open ("/home/thomas/Desktop/distance_method/distance_method/config/correlation_db.json", 'r')as f:
-            self.db_info = json.load(f)
+        env = os.environ.get('PROJECT_ENV', 'dev')
+        # Connect to PostgreSQL server (Docker)
+        if env == "prod":
+            self.db_conn = psycopg2.connect(
+                                        host=os.environ['USER_DB_HOST'],
+                                        database=os.environ['USER_DB_NAME'],
+                                        user=os.environ['USER_DB_USER'],
+                                        password=os.environ['USER_DB_PASSWORD'],
+                                        port=os.environ['USER_DB_PORT'])
+            print("Connect successful!")
 
-
-        # Connect to PostgreSQL server
-        self.db_conn = psycopg2.connect(
-                                    host = self.db_info['USER_DB_HOST'],
-                                    database = self.db_info['USER_DB_NAME'],
-                                    user = self.db_info['USER_DB_USER'],
-                                    password = self.db_info['USER_DB_PASSWORD'],
-                                    port = self.db_info['USER_DB_PORT'])
-        print("Connect successful!")
-
+        # Connect to PostgreSQL server (Local)
+        elif env == "dev":
+            file_path = Path.cwd() / "config" / "correlation_db.json"
+            with open (file_path, 'r')as f:
+                self.db_info = json.load(f)
+            self.db_conn = psycopg2.connect(
+                                        host = self.db_info['USER_DB_HOST'],
+                                        database = self.db_info['USER_DB_NAME'],
+                                        user = self.db_info['USER_DB_USER'],
+                                        password = self.db_info['USER_DB_PASSWORD'],
+                                        port = self.db_info['USER_DB_PORT'])
+        else:
+            raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
+    
+        
         self.db_cursor = self.db_conn.cursor()
 
     def _get_user_id(self, username):
