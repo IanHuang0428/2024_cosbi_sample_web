@@ -104,11 +104,11 @@ def run_tracker(request):
     user = str(request.user)
     
       
-    env = os.environ['PROJECT_ENV']
+    env = os.environ.get('PROJECT_ENV', 'dev')
     if env == "prod":
-        tracker_folder_path = "/app/tracker_results"
+        tracker_folder_path = "/distance_method/tracker_results"
     elif env == "dev":
-        tracker_folder_path = Path.cwd().parent / "common" / "tracker_results"
+        tracker_folder_path = Path.cwd().parent / "tracker_results"
     else:
         raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
     

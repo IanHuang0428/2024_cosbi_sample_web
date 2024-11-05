@@ -1,4 +1,3 @@
-
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -15,7 +14,7 @@ class MailHandler:
     _subject: str
     
     def __init__(self):       
-        gmail_acct = Path.cwd().parent / "config" / "gmail.json"
+        gmail_acct = Path.cwd() / "config" / "gmail.json"
         with open (gmail_acct, 'r')as f:
             acct_info = json.load(f)
         self._host_email_address = acct_info['username']

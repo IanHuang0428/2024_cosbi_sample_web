@@ -1,8 +1,9 @@
 import psycopg2
 import json 
 import os
+from pathlib import Path
 
-with open ("/home/thomas/Desktop/distance_method/distance_method/config/correlation_db.json", 'r')as f:
+with open (Path.cwd().parent / "config" / "correlation_db.json", 'r')as f:
     db_info = json.load(f)
     
 

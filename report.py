@@ -2,12 +2,149 @@ import os
 import json
 import shutil 
 import datetime
-from pathlib import Path
+import requests
+import psycopg2
 import pandas as pd
+from pathlib import Path
 from collections import defaultdict
-from common.func_client import FuncClient
-from common.user_setting_operation import  UserTrackingHandler
-from distance_method.mail import MailHandler
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+class MailHandler:
+    _host_email_address: str
+    _host_passwd: str
+    _subject: str
+    
+    def __init__(self):       
+        gmail_acct = Path.cwd() / "report.json"
+        with open (gmail_acct, 'r')as f:
+            acct_info = json.load(f)
+        self._host_email_address = acct_info['username']
+        self._host_passwd = acct_info['password']
+        self._smtp = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        self._smtp.ehlo() # 驗證SMTP伺服器
+        self._smtp.login(self._host_email_address,self._host_passwd)   # 登入寄件者gmail
+        self._local_time = datetime.date.today()
+        
+    def _create_mail(self, subject:str, to_address: str):
+        mail = MIMEMultipart()
+        mail['From'] = self._host_email_address
+        mail['To'] = to_address
+        mail['Subject'] = subject
+        return mail     
+
+    def _add_file(self, mail: MIMEMultipart, file: str):
+        with open(file, 'rb') as fp:
+            attach_file = MIMEBase('application', "octet-stream")
+            attach_file.set_payload(fp.read())
+        encoders.encode_base64(attach_file)
+        attach_file.add_header('Content-Disposition', 'attachment', filename=f"{self._local_time}_signals_report.xlsx")
+        mail.attach(attach_file)
+        
+    def send(self, to_address, file_path):
+        mail = self._create_mail(f"Monitor Report {self._local_time}", to_address)
+        contents = "This is signals report."
+        mail.attach(MIMEText(contents))
+        self._add_file(mail, file_path)
+        status = self._smtp.sendmail(self._host_email_address, to_address, mail.as_string())
+
+        return status
+
+class FuncClient(object):
+    _instance = None
+    ROOT = 'http://140.116.214.156:1986/usFunc/'
+    DISTANCEMETHOD_URL= ROOT + "distance_method/" 
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        pass
+
+    def _send_request(self, url: str, request_body: str):
+            request_header = {
+                "Content-Type"  : "application/json"
+            }
+            response = requests.post(url, data=json.dumps(request_body), headers=request_header)
+            
+            return response  
+        
+    def pairtrading_backtesting(self,
+                params: dict,
+                method:str
+                ):
+        
+            request_body = {
+                "params" : params,
+                "method":method
+            }                       
+
+            response = self._send_request(self.DISTANCEMETHOD_URL, request_body)
+                
+            if response.status_code == 200:
+                return response.json()['detail']
+            
+            elif response.status_code == 404:
+                print("It has no trading pair found!")
+                print(response.json()['msg'])
+            else:
+                print("Something wrong at get spreads, status code:", response.status_code)
+                print(response.json()['msg'])
+                
+            return None   
+        
+class UserTrackingHandler(object):
+
+    def __init__(self):
+        
+        file_path = Path.cwd() / "report.json"
+        with open (file_path, 'r')as f:
+            self.db_info = json.load(f)
+        self.db_conn = psycopg2.connect(
+                                    host = self.db_info['USER_DB_HOST'],
+                                    database = self.db_info['USER_DB_NAME'],
+                                    user = self.db_info['USER_DB_USER'],
+                                    password = self.db_info['USER_DB_PASSWORD'],
+                                    port = self.db_info['USER_DB_PORT'])
+    
+        
+        self.db_cursor = self.db_conn.cursor()
+
+    def _get_user_id(self, username):
+        sql = f"""SELECT id FROM auth_user
+            WHERE username = %s"""
+        sql_val = (username, )
+        self.db_cursor.execute(sql, sql_val)
+        user_id = self.db_cursor.fetchall()[0][0]
+        
+        return user_id
+           
+    # get tracker's user name & email
+    def get_all_user_info(self):
+        sql = f"""
+            SELECT DISTINCT (auth_user.username), auth_user.email FROM user_tracker
+            INNER JOIN auth_user ON user_tracker.user_id = auth_user.id;
+        """
+        self.db_cursor.execute(sql)
+        res = self.db_cursor.fetchall()
+        return res
+
+    # get all track spreads
+    def get_all_track_params_combination(self):
+        sql = f"""
+            SELECT username, user_tracker.created_at::date,  start_date::date, end_date::date, method,
+            stock1, stock2, window_size, n_times
+            FROM user_tracker
+            INNER JOIN auth_user ON auth_user.id = user_tracker.user_id
+            """
+        self.db_cursor.execute(sql)
+        res = self.db_cursor.fetchall()
+        return res
 
 class ReportHandler(object):
 
