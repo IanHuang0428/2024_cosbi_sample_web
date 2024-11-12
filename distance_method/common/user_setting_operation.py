@@ -17,7 +17,7 @@ class ConnectUserDB(object):
                                         user=os.environ['USER_DB_USER'],
                                         password=os.environ['USER_DB_PASSWORD'],
                                         port=os.environ['USER_DB_PORT'])
-            print("Connect successful!")
+            
 
         # Connect to PostgreSQL server (Local)
         elif env == "dev":
@@ -33,9 +33,9 @@ class ConnectUserDB(object):
         else:
             raise EnvironmentError("Unknown environment! Please set the 'ENV' variable to 'production' or 'development'.")
     
-        
         self.db_cursor = self.db_conn.cursor()
-
+        print("Connect successful!")
+        
     def _get_user_id(self, username):
         sql = f"""SELECT id FROM auth_user
             WHERE username = %s"""
